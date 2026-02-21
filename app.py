@@ -7,148 +7,218 @@ st.set_page_config(layout="wide", page_title="Thread-Trace")
 
 st.markdown("""
 <style>
-    /* Background and base font */
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400&display=swap');
+
+    /* Background and base */
     .stApp {
-        background-color: #f7f5f2;
+        background-color: #f5f2ee;
         color: #2c2c2c;
-        font-family: 'Georgia', serif;
+        font-family: 'Jost', sans-serif;
+        font-weight: 300;
     }
 
-    /* Hide default Streamlit header/footer */
+    /* Hide Streamlit chrome */
     #MainMenu, footer, header { visibility: hidden; }
+    [data-testid="stToolbar"] { display: none; }
 
-    /* Main title */
-    h1 {
-        font-family: 'Georgia', serif;
-        font-size: 2.2rem;
-        font-weight: 400;
-        letter-spacing: 0.12em;
-        color: #2c2c2c;
+    /* Hero title */
+    .hero {
+        text-align: center;
+        padding: 3rem 0 1.5rem 0;
+        border-bottom: 1px solid #ddd9d3;
+        margin-bottom: 2rem;
+    }
+    .hero h1 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 4rem;
+        font-weight: 300;
+        letter-spacing: 0.35em;
+        color: #1e1e1e;
         text-transform: uppercase;
-        padding-bottom: 0.2rem;
+        margin: 0;
+        line-height: 1;
+    }
+    .hero .tagline {
+        font-family: 'Jost', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 300;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: #9e9890;
+        margin-top: 0.75rem;
     }
 
-    /* Subheaders */
-    h2, h3 {
-        font-family: 'Georgia', serif;
+    /* Section labels */
+    h4 {
+        font-family: 'Jost', sans-serif;
+        font-size: 0.7rem;
         font-weight: 400;
-        letter-spacing: 0.08em;
-        color: #4a4a4a;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: #9e9890;
+        margin-bottom: 1.2rem;
     }
 
     /* Tabs */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 2rem;
-        border-bottom: 1px solid #d4cfc9;
+        gap: 3rem;
+        border-bottom: 1px solid #ddd9d3;
         background-color: transparent;
+        justify-content: center;
+        margin-bottom: 2rem;
     }
     .stTabs [data-baseweb="tab"] {
-        font-family: 'Georgia', serif;
-        font-size: 0.85rem;
-        letter-spacing: 0.1em;
+        font-family: 'Jost', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 300;
+        letter-spacing: 0.2em;
         text-transform: uppercase;
-        color: #8a8178;
+        color: #b0a89e;
         background-color: transparent;
         border: none;
-        padding-bottom: 0.6rem;
+        padding-bottom: 0.75rem;
     }
     .stTabs [aria-selected="true"] {
-        color: #2c2c2c !important;
-        border-bottom: 2px solid #2c2c2c !important;
+        color: #1e1e1e !important;
+        border-bottom: 1px solid #1e1e1e !important;
         background-color: transparent !important;
     }
 
     /* File uploader */
     [data-testid="stFileUploader"] {
-        background-color: #eeeae5;
-        border: 1px dashed #c4bfb8;
-        border-radius: 4px;
-        padding: 1rem;
+        background-color: #edeae5;
+        border: 1px dashed #ccc7c0;
+        border-radius: 2px;
+        padding: 1.5rem;
+    }
+    [data-testid="stFileUploader"] label {
+        font-family: 'Jost', sans-serif;
+        font-size: 0.72rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #9e9890;
     }
 
-    /* Progress bars (used for analysis) */
-    .stProgress > div > div {
-        background-color: #8a8178;
+    /* Images — rounded corners */
+    img {
+        border-radius: 2px;
+    }
+
+    /* Progress bar track */
+    [data-testid="stProgressBar"] > div {
+        background-color: #e5e1db;
+        border-radius: 0;
+        height: 3px !important;
+    }
+    [data-testid="stProgressBar"] > div > div {
+        background-color: #2c2c2c !important;
+        border-radius: 0;
     }
 
     /* Expander */
-    .streamlit-expanderHeader {
-        font-family: 'Georgia', serif;
-        font-size: 0.8rem;
-        letter-spacing: 0.08em;
+    [data-testid="stExpander"] summary {
+        font-family: 'Jost', sans-serif;
+        font-size: 0.68rem;
+        letter-spacing: 0.15em;
         text-transform: uppercase;
-        color: #8a8178;
+        color: #b0a89e;
     }
 
     /* Links */
     a {
         color: #6b6259 !important;
-        text-decoration: underline;
-        font-size: 0.82rem;
-        letter-spacing: 0.04em;
+        text-decoration: none !important;
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border-bottom: 1px solid #c4bfb8;
     }
+    a:hover { color: #2c2c2c !important; border-bottom-color: #2c2c2c; }
 
     /* Divider */
-    hr {
-        border-color: #d4cfc9;
+    hr { border-color: #ddd9d3; margin: 2rem 0; }
+
+    /* Caption */
+    [data-testid="stCaptionContainer"] p {
+        color: #9e9890;
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        font-family: 'Jost', sans-serif;
     }
 
-    /* Caption / small text */
-    .stCaption, small {
-        color: #8a8178;
+    /* Info box */
+    .stAlert {
+        background-color: #edeae5;
+        border: none;
+        color: #9e9890;
         font-size: 0.78rem;
+        font-family: 'Jost', sans-serif;
+    }
+
+    /* Bold text in markdown */
+    strong {
+        font-weight: 400;
         letter-spacing: 0.04em;
     }
 
-    /* Info boxes */
-    .stAlert {
-        background-color: #eeeae5;
-        border: none;
-        color: #6b6259;
+    /* Match card spacing */
+    [data-testid="column"] {
+        padding: 0 0.5rem;
     }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("Thread-Trace")
-st.caption("Mood → Marketplace — find second-hand pieces that match your aesthetic")
+st.markdown("""
+<div class="hero">
+    <h1>Thread&thinsp;Trace</h1>
+    <div class="tagline">Mood &nbsp;·&nbsp; Match &nbsp;·&nbsp; Marketplace</div>
+</div>
+""", unsafe_allow_html=True)
 
-st.divider()
-
-uploaded = st.file_uploader("Upload a Pinterest or mood image to begin", type=["jpg","jpeg","png"])
+col_left, col_mid, col_right = st.columns([1, 2, 1])
+with col_mid:
+    uploaded = st.file_uploader("Upload a mood or Pinterest image", type=["jpg","jpeg","png"])
 
 tab1, tab2, tab3 = st.tabs(["Inspiration", "AI Analysis", "Matches"])
 
 with tab1:
 	if uploaded:
-		st.image(Image.open(uploaded), width=600)
+		c1, c2, c3 = st.columns([1, 2, 1])
+		with c2:
+			st.image(Image.open(uploaded), use_container_width=True)
 	else:
-		st.markdown("#### Demo Inspirations")
+		st.markdown("#### Inspirations")
 		demo_list = matcher.list_demo_inspirations()
 		if demo_list:
 			cols = st.columns(min(3, len(demo_list)))
 			for i, fname in enumerate(demo_list[:3]):
-				cols[i].image(os.path.join("data/inspiration", fname), caption=fname, use_container_width=True)
+				cols[i].image(os.path.join("data/inspiration", fname), use_container_width=True)
+				cols[i].caption(fname)
 		else:
 			st.info("No demo images found in data/inspiration.")
 
 with tab2:
-	st.markdown("#### Style Attributes Detected")
+	st.markdown("#### Style Attributes")
 	demo_list = matcher.list_demo_inspirations()
 	if not uploaded and demo_list:
-		for fname in demo_list[:3]:
-			st.markdown(f"**{fname}**")
-			analysis = matcher.simulate_analysis(fname)
-			for k, v in analysis.items():
-				st.caption(f"{k} — {int(v*100)}%")
-				st.progress(v)
-			st.divider()
+		cols = st.columns(min(3, len(demo_list[:3])))
+		for i, fname in enumerate(demo_list[:3]):
+			with cols[i]:
+				st.caption(fname)
+				analysis = matcher.simulate_analysis(fname)
+				for k, v in analysis.items():
+					st.markdown(f"<span style='font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#9e9890'>{k}</span>", unsafe_allow_html=True)
+					st.progress(v)
 	elif uploaded:
-		analysis = matcher.simulate_analysis(uploaded.name)
-		for k, v in analysis.items():
-			st.caption(f"{k} — {int(v*100)}%")
-			st.progress(v)
+		c1, c2, c3 = st.columns([1, 2, 1])
+		with c2:
+			analysis = matcher.simulate_analysis(uploaded.name)
+			for k, v in analysis.items():
+				st.markdown(f"<span style='font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#9e9890'>{k}</span>", unsafe_allow_html=True)
+				st.progress(v)
+	st.divider()
 	with st.expander("How this works"):
-		st.write("Attributes are extracted via simulated feature vector analysis and nearest-neighbor search (Wizard-of-Oz prototype).")
+		st.write("Style attributes are extracted via simulated feature vector analysis and nearest-neighbour search — a Wizard-of-Oz approximation of a CLIP + FAISS pipeline.")
 
 with tab3:
 	st.markdown("#### Curated Matches")
@@ -163,10 +233,10 @@ with tab3:
 				groups.append((fname, m))
 
 	if not groups:
-		st.info("No matches found. Add demo matches JSON files to data/matches or map filenames in src/matcher.py")
+		st.info("No matches found.")
 	else:
 		for group_name, matches in groups:
-			st.markdown(f"**Inspired by:** {group_name}")
+			st.markdown(f"<p style='font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:#b0a89e;margin-bottom:1rem'>Inspired by &nbsp;{group_name}</p>", unsafe_allow_html=True)
 			cols = st.columns(min(4, len(matches)))
 			for i, item in enumerate(matches):
 				if isinstance(item, dict):
@@ -189,11 +259,9 @@ with tab3:
 					col.write("(image missing)")
 
 				if title:
-					col.markdown(f"**{title}**")
-				if price:
-					col.caption(price)
-				if source:
-					col.caption(source)
+					col.markdown(f"<span style='font-size:0.8rem;font-weight:400'>{title}</span>", unsafe_allow_html=True)
+				if price or source:
+					col.caption(f"{price}  {f'· {source}' if source else ''}")
 				if url:
 					col.markdown(f"[View listing →]({url})")
 			st.divider()
