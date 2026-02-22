@@ -1,9 +1,15 @@
 import streamlit as st
 from PIL import Image
 import os
+import io
+import urllib.request
 from src import matcher
 
 st.set_page_config(layout="wide", page_title="Thread-Trace")
+
+# Cache AI style reads so we don't re-call the API on every rerender
+if "style_reads" not in st.session_state:
+    st.session_state.style_reads = {}
 
 st.markdown("""
 <style>
@@ -178,24 +184,65 @@ st.markdown("""
 col_left, col_mid, col_right = st.columns([1, 2, 1])
 with col_mid:
     uploaded = st.file_uploader("Upload a mood or Pinterest image", type=["jpg","jpeg","png"])
+    url_input = st.text_input("Or paste an image URL", placeholder="https://...")
+
+api_key = st.secrets.get("OPENAI_API_KEY", "")
+
+# Handle URL: download and save to data/inspiration/
+if url_input:
+    try:
+        fname = url_input.split("/")[-1].split("?")[0]
+        if not fname.lower().endswith((".jpg", ".jpeg", ".png")):
+            fname = "url_image.jpg"
+        save_path = os.path.join("data/inspiration", fname)
+        if not os.path.exists(save_path):
+            with urllib.request.urlopen(url_input) as r:
+                img_bytes = r.read()
+            with open(save_path, "wb") as f:
+                f.write(img_bytes)
+        # Get AI style read for URL image if not cached
+        if fname not in st.session_state.style_reads and api_key and not api_key.startswith("sk-..."):
+            with open(save_path, "rb") as f:
+                img_bytes = f.read()
+            with st.spinner("Reading your style..."):
+                st.session_state.style_reads[fname] = matcher.get_ai_style_read(img_bytes, api_key)
+    except Exception as e:
+        st.error(f"Could not load image from URL: {e}")
+
+# Handle file upload: save to data/inspiration/ and get AI style read
+if uploaded:
+    save_path = os.path.join("data/inspiration", uploaded.name)
+    uploaded.seek(0)
+    img_bytes = uploaded.read()
+    uploaded.seek(0)
+    with open(save_path, "wb") as f:
+        f.write(img_bytes)
+    if uploaded.name not in st.session_state.style_reads and api_key and not api_key.startswith("sk-..."):
+        with st.spinner("Reading your style..."):
+            st.session_state.style_reads[uploaded.name] = matcher.get_ai_style_read(img_bytes, api_key)
 
 tab1, tab2, tab3 = st.tabs(["Inspiration", "AI Analysis", "Matches"])
 
 with tab1:
-	if uploaded:
-		c1, c2, c3 = st.columns([1, 2, 1])
-		with c2:
-			st.image(Image.open(uploaded), use_container_width=True)
+	st.markdown("#### Inspirations")
+	demo_list = matcher.list_demo_inspirations()
+	if demo_list:
+		cols = st.columns(min(3, len(demo_list)))
+		for i, fname in enumerate(demo_list):
+			col = cols[i % 3]
+			col.image(os.path.join("data/inspiration", fname), use_column_width=True)
+			style_read = st.session_state.style_reads.get(fname, "")
+			if style_read:
+				col.markdown(
+					f"<p style='font-family:Cormorant Garamond,serif;font-size:0.85rem;"
+					f"font-style:italic;color:#9e9890;line-height:1.6;margin-top:0.4rem'>"
+					f"{style_read}</p>",
+					unsafe_allow_html=True,
+				)
+			else:
+				col.caption(fname)
 	else:
-		st.markdown("#### Inspirations")
-		demo_list = matcher.list_demo_inspirations()
-		if demo_list:
-			cols = st.columns(min(3, len(demo_list)))
-			for i, fname in enumerate(demo_list[:3]):
-				cols[i].image(os.path.join("data/inspiration", fname), use_container_width=True)
-				cols[i].caption(fname)
-		else:
-			st.info("No demo images found in data/inspiration.")
+		st.info("No images found in data/inspiration.")
 
 with tab2:
 	st.markdown("#### Style Attributes")
@@ -205,6 +252,14 @@ with tab2:
 		for i, fname in enumerate(demo_list[:3]):
 			with cols[i]:
 				st.caption(fname)
+				style_read = st.session_state.style_reads.get(fname, "")
+				if style_read:
+					st.markdown(
+						f"<p style='font-family:Cormorant Garamond,serif;font-size:0.85rem;"
+						f"font-style:italic;color:#6b6259;line-height:1.6;margin-bottom:0.8rem'>"
+						f"{style_read}</p>",
+						unsafe_allow_html=True,
+					)
 				analysis = matcher.simulate_analysis(fname)
 				for k, v in analysis.items():
 					st.markdown(f"<span style='font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#9e9890'>{k}</span>", unsafe_allow_html=True)
@@ -212,13 +267,21 @@ with tab2:
 	elif uploaded:
 		c1, c2, c3 = st.columns([1, 2, 1])
 		with c2:
+			style_read = st.session_state.style_reads.get(uploaded.name, "")
+			if style_read:
+				st.markdown(
+					f"<p style='font-family:Cormorant Garamond,serif;font-size:1.1rem;"
+					f"font-style:italic;color:#6b6259;line-height:1.7;margin-bottom:1.5rem'>"
+					f"{style_read}</p>",
+					unsafe_allow_html=True,
+				)
 			analysis = matcher.simulate_analysis(uploaded.name)
 			for k, v in analysis.items():
 				st.markdown(f"<span style='font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#9e9890'>{k}</span>", unsafe_allow_html=True)
 				st.progress(v)
 	st.divider()
 	with st.expander("How this works"):
-		st.write("Style attributes are extracted via simulated feature vector analysis and nearest-neighbour search — a Wizard-of-Oz approximation of a CLIP + FAISS pipeline.")
+		st.write("Uploaded images are described by GPT-4o vision to generate a real-time style read. Confidence attributes are extracted via simulated feature vector analysis — a Wizard-of-Oz approximation of a CLIP + FAISS pipeline.")
 
 with tab3:
 	st.markdown("#### Curated Matches")
@@ -254,7 +317,7 @@ with tab3:
 
 				col = cols[i % 4]
 				try:
-					col.image(img, use_container_width=True)
+					col.image(img, use_column_width=True)
 				except Exception:
 					col.write("(image missing)")
 

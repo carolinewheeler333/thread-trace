@@ -6,6 +6,41 @@ simulate analysis and return pre-canned matches. Keep logic here so
 """
 import os
 import json
+import base64
+
+
+def get_ai_style_read(image_bytes: bytes, api_key: str) -> str:
+    """Send the uploaded image to GPT-4o and return a short style description."""
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+        b64 = base64.b64encode(image_bytes).decode("utf-8")
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                "You are a fashion stylist. In 2–3 sentences, describe the "
+                                "aesthetic, silhouette, colour palette, and overall vibe of "
+                                "this outfit or mood board image. Be specific and style-forward."
+                            ),
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/jpeg;base64,{b64}"},
+                        },
+                    ],
+                }
+            ],
+            max_tokens=120,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Style read unavailable: {e}"
 
 # Map demo inspiration filename -> list of marketplace image paths
 WIZARD_MAP = {
