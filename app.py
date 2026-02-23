@@ -285,7 +285,7 @@ with tab3:
 	st.markdown("#### Curated Matches")
 	if uploaded:
 		st.markdown(
-			"<div style='background:#edeae5;border-radius:4px;padding:2.5rem 2rem;text-align:center;margin-top:1rem'>"
+			"<div style='background:#edeae5;border-radius:4px;padding:2.5rem 2rem;text-align:center;margin-top:1rem;margin-bottom:2rem'>"
 			"<p style='font-family:Cormorant Garamond,serif;font-size:1.6rem;font-weight:400;color:#1e1e1e;margin-bottom:0.6rem'>"
 			"Your threads are on their way.</p>"
 			"<p style='font-family:Jost,sans-serif;font-size:0.82rem;letter-spacing:0.1em;color:#9e9890;line-height:1.7'>"
@@ -294,47 +294,46 @@ with tab3:
 			"</div>",
 			unsafe_allow_html=True,
 		)
+	groups = []
+	for fname in matcher.WIZARD_MAP.keys():
+		m = matcher.load_matches_for(fname)
+		if m:
+			groups.append((fname, m))
+
+	if not groups:
+		st.info("No matches found.")
 	else:
-		groups = []
-		for fname in matcher.WIZARD_MAP.keys():
-			m = matcher.load_matches_for(fname)
-			if m:
-				groups.append((fname, m))
+		for group_name, matches in groups:
+			analysis = st.session_state.ai_analysis.get(group_name, {})
+			group_title = analysis.get("title", "")
+			display_group = f"{group_title} — {group_name}" if group_title else group_name
+			st.markdown(f"<p style='font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:#b0a89e;margin-bottom:1rem'>Inspired by &nbsp;{display_group}</p>", unsafe_allow_html=True)
+			cols = st.columns(min(4, len(matches)))
+			for i, item in enumerate(matches):
+				if isinstance(item, dict):
+					img = item.get("img")
+					title = item.get("title", "")
+					price = item.get("price", "")
+					url = item.get("url", "")
+					source = item.get("source", "")
+				else:
+					img = item
+					title = os.path.basename(str(item))
+					price = ""
+					url = ""
+					source = ""
 
-		if not groups:
-			st.info("No matches found.")
-		else:
-			for group_name, matches in groups:
-				analysis = st.session_state.ai_analysis.get(group_name, {})
-				group_title = analysis.get("title", "")
-				display_group = f"{group_title} — {group_name}" if group_title else group_name
-				st.markdown(f"<p style='font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:#b0a89e;margin-bottom:1rem'>Inspired by &nbsp;{display_group}</p>", unsafe_allow_html=True)
-				cols = st.columns(min(4, len(matches)))
-				for i, item in enumerate(matches):
-					if isinstance(item, dict):
-						img = item.get("img")
-						title = item.get("title", "")
-						price = item.get("price", "")
-						url = item.get("url", "")
-						source = item.get("source", "")
-					else:
-						img = item
-						title = os.path.basename(str(item))
-						price = ""
-						url = ""
-						source = ""
+				col = cols[i % 4]
+				try:
+					col.image(img, use_column_width=True)
+				except Exception:
+					col.write("(image missing)")
 
-					col = cols[i % 4]
-					try:
-						col.image(img, use_column_width=True)
-					except Exception:
-						col.write("(image missing)")
-
-					if title:
-						col.markdown(f"<span style='font-size:0.8rem;font-weight:400'>{title}</span>", unsafe_allow_html=True)
-					if price or source:
-						col.caption(f"{price}  {f'· {source}' if source else ''}")
-					if url:
-						col.markdown(f"[View listing →]({url})")
-				st.divider()
+				if title:
+					col.markdown(f"<span style='font-size:0.8rem;font-weight:400'>{title}</span>", unsafe_allow_html=True)
+				if price or source:
+					col.caption(f"{price}  {f'· {source}' if source else ''}")
+				if url:
+					col.markdown(f"[View listing →]({url})")
+			st.divider()
 
