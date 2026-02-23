@@ -2,14 +2,13 @@ import streamlit as st
 from PIL import Image
 import os
 import io
-import urllib.request
 from src import matcher
 
 st.set_page_config(layout="wide", page_title="Thread-Trace")
 
-# Cache AI style reads so we don't re-call the API on every rerender
-if "style_reads" not in st.session_state:
-    st.session_state.style_reads = {}
+# Load persisted analysis cache from disk into session_state on first run
+if "ai_analysis" not in st.session_state:
+    st.session_state.ai_analysis = matcher.load_cache()
 
 st.markdown("""
 <style>
@@ -75,7 +74,7 @@ st.markdown("""
     }
     .stTabs [data-baseweb="tab"] {
         font-family: 'Jost', sans-serif;
-        font-size: 0.7rem;
+        font-size: 0.85rem;
         font-weight: 300;
         letter-spacing: 0.2em;
         text-transform: uppercase;
@@ -184,32 +183,19 @@ st.markdown("""
 col_left, col_mid, col_right = st.columns([1, 2, 1])
 with col_mid:
     uploaded = st.file_uploader("Upload a mood or Pinterest image", type=["jpg","jpeg","png"])
-    url_input = st.text_input("Or paste an image URL", placeholder="https://...")
 
 api_key = st.secrets.get("OPENAI_API_KEY", "")
 
-# Handle URL: download and save to data/inspiration/
-if url_input:
-    try:
-        fname = url_input.split("/")[-1].split("?")[0]
-        if not fname.lower().endswith((".jpg", ".jpeg", ".png")):
-            fname = "url_image.jpg"
-        save_path = os.path.join("data/inspiration", fname)
-        if not os.path.exists(save_path):
-            with urllib.request.urlopen(url_input) as r:
-                img_bytes = r.read()
-            with open(save_path, "wb") as f:
-                f.write(img_bytes)
-        # Get AI style read for URL image if not cached
-        if fname not in st.session_state.style_reads and api_key and not api_key.startswith("sk-..."):
-            with open(save_path, "rb") as f:
-                img_bytes = f.read()
-            with st.spinner("Reading your style..."):
-                st.session_state.style_reads[fname] = matcher.get_ai_style_read(img_bytes, api_key)
-    except Exception as e:
-        st.error(f"Could not load image from URL: {e}")
+def run_ai_analysis(fname, img_bytes):
+    """Run OpenAI analysis, cache in session_state and persist to disk."""
+    if (fname not in st.session_state.ai_analysis or st.session_state.ai_analysis[fname].get("error")) \
+            and api_key and not api_key.startswith("sk-...") and len(api_key) > 20:
+        with st.spinner("Analysing your aesthetic — this takes a few seconds..."):
+            result = matcher.get_ai_analysis(img_bytes, api_key)
+            st.session_state.ai_analysis[fname] = result
+            matcher.save_cache(st.session_state.ai_analysis)
 
-# Handle file upload: save to data/inspiration/ and get AI style read
+# Handle file upload: save to data/inspiration/ and run AI analysis
 if uploaded:
     save_path = os.path.join("data/inspiration", uploaded.name)
     uploaded.seek(0)
@@ -217,9 +203,18 @@ if uploaded:
     uploaded.seek(0)
     with open(save_path, "wb") as f:
         f.write(img_bytes)
-    if uploaded.name not in st.session_state.style_reads and api_key and not api_key.startswith("sk-..."):
-        with st.spinner("Reading your style..."):
-            st.session_state.style_reads[uploaded.name] = matcher.get_ai_style_read(img_bytes, api_key)
+    run_ai_analysis(uploaded.name, img_bytes)
+
+# Run AI analysis for demo images — process sequentially with delay to avoid rate limits
+import time
+for demo_fname in matcher.list_demo_inspirations():
+    if demo_fname not in st.session_state.ai_analysis or st.session_state.ai_analysis[demo_fname].get("error"):
+        demo_path = os.path.join("data/inspiration", demo_fname)
+        if os.path.exists(demo_path):
+            with open(demo_path, "rb") as f:
+                demo_bytes = f.read()
+            run_ai_analysis(demo_fname, demo_bytes)
+            time.sleep(2)
 
 tab1, tab2, tab3 = st.tabs(["Inspiration", "AI Analysis", "Matches"])
 
@@ -231,63 +226,74 @@ with tab1:
 		for i, fname in enumerate(demo_list):
 			col = cols[i % 3]
 			col.image(os.path.join("data/inspiration", fname), use_column_width=True)
-			style_read = st.session_state.style_reads.get(fname, "")
-			if style_read:
+			analysis = st.session_state.ai_analysis.get(fname, {})
+			title = analysis.get("title", "")
+			desc = analysis.get("description", "")
+			display_label = f"{title} — {fname}" if title else fname
+			col.markdown(
+				f"<p style='font-family:Jost,sans-serif;font-size:0.9rem;letter-spacing:0.1em;"
+				f"text-transform:uppercase;color:#9e9890;margin-top:0.4rem'>{display_label}</p>",
+				unsafe_allow_html=True,
+			)
+			if desc:
 				col.markdown(
-					f"<p style='font-family:Cormorant Garamond,serif;font-size:0.85rem;"
-					f"font-style:italic;color:#9e9890;line-height:1.6;margin-top:0.4rem'>"
-					f"{style_read}</p>",
+					f"<p style='font-family:Cormorant Garamond,serif;font-size:1.15rem;"
+					f"font-style:italic;color:#9e9890;line-height:1.6;margin-top:0.2rem'>"
+					f"{desc}</p>",
 					unsafe_allow_html=True,
 				)
-			else:
-				col.caption(fname)
 	else:
 		st.info("No images found in data/inspiration.")
 
 with tab2:
 	st.markdown("#### Style Attributes")
 	demo_list = matcher.list_demo_inspirations()
-	if not uploaded and demo_list:
-		cols = st.columns(min(3, len(demo_list[:3])))
-		for i, fname in enumerate(demo_list[:3]):
-			with cols[i]:
-				st.caption(fname)
-				style_read = st.session_state.style_reads.get(fname, "")
-				if style_read:
-					st.markdown(
-						f"<p style='font-family:Cormorant Garamond,serif;font-size:0.85rem;"
-						f"font-style:italic;color:#6b6259;line-height:1.6;margin-bottom:0.8rem'>"
-						f"{style_read}</p>",
-						unsafe_allow_html=True,
-					)
-				analysis = matcher.simulate_analysis(fname)
-				for k, v in analysis.items():
-					st.markdown(f"<span style='font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#9e9890'>{k}</span>", unsafe_allow_html=True)
-					st.progress(v)
-	elif uploaded:
-		c1, c2, c3 = st.columns([1, 2, 1])
-		with c2:
-			style_read = st.session_state.style_reads.get(uploaded.name, "")
-			if style_read:
+	if demo_list:
+		for fname in demo_list:
+			analysis = st.session_state.ai_analysis.get(fname, {})
+			title = analysis.get("title", "")
+			desc = analysis.get("description", "")
+			attrs = analysis.get("attributes", {})
+			display_label = f"{title} — {fname}" if title else fname
+			st.markdown(
+				f"<div style='background:#edeae5;border-radius:4px;padding:1.4rem 1.6rem;margin-bottom:0.8rem'>"
+				f"<p style='font-family:Cormorant Garamond,serif;font-size:1.5rem;font-weight:400;"
+				f"color:#1e1e1e;margin:0 0 0.25rem 0;line-height:1.2'>{display_label}</p>"
+				+ (f"<p style='font-family:Cormorant Garamond,serif;font-size:1.05rem;font-style:italic;"
+				   f"color:#6b6259;line-height:1.65;margin:0'>{desc}</p>" if desc else
+				   f"<p style='font-family:Jost,sans-serif;font-size:0.82rem;color:#b0a89e;margin:0'>Analysing your aesthetic — this takes a few seconds...</p>")
+				+ "</div>",
+				unsafe_allow_html=True,
+			)
+			for k, v in attrs.items():
 				st.markdown(
-					f"<p style='font-family:Cormorant Garamond,serif;font-size:1.1rem;"
-					f"font-style:italic;color:#6b6259;line-height:1.7;margin-bottom:1.5rem'>"
-					f"{style_read}</p>",
+					f"<span style='font-family:Jost,sans-serif;font-size:0.82rem;letter-spacing:0.12em;"
+					f"text-transform:uppercase;color:#6b6259'>{k}</span>",
 					unsafe_allow_html=True,
 				)
-			analysis = matcher.simulate_analysis(uploaded.name)
-			for k, v in analysis.items():
-				st.markdown(f"<span style='font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#9e9890'>{k}</span>", unsafe_allow_html=True)
-				st.progress(v)
+				st.progress(float(v))
+			if analysis.get("error"):
+				st.caption(f"Error: {analysis['error']}")
+			st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
+	else:
+		st.info("No images found in data/inspiration.")
 	st.divider()
 	with st.expander("How this works"):
-		st.write("Uploaded images are described by GPT-4o vision to generate a real-time style read. Confidence attributes are extracted via simulated feature vector analysis — a Wizard-of-Oz approximation of a CLIP + FAISS pipeline.")
+		st.write("Uploaded images are analysed by GPT-4o vision, which generates both a style description and attribute confidence scores in real time. Match results are curated to demonstrate the end-to-end pipeline.")
 
 with tab3:
 	st.markdown("#### Curated Matches")
 	if uploaded:
-		matches = matcher.load_matches_for(uploaded.name)
-		groups = [(uploaded.name, matches)] if matches else []
+		st.markdown(
+			"<div style='background:#edeae5;border-radius:4px;padding:2.5rem 2rem;text-align:center;margin-top:1rem'>"
+			"<p style='font-family:Cormorant Garamond,serif;font-size:1.6rem;font-weight:400;color:#1e1e1e;margin-bottom:0.6rem'>"
+			"Your threads are on their way.</p>"
+			"<p style='font-family:Jost,sans-serif;font-size:0.82rem;letter-spacing:0.1em;color:#9e9890;line-height:1.7'>"
+			"This app is a prototype — real-time product matching is coming in the next update.<br>"
+			"Check back soon to locate your threads.</p>"
+			"</div>",
+			unsafe_allow_html=True,
+		)
 	else:
 		groups = []
 		for fname in matcher.WIZARD_MAP.keys():
@@ -295,37 +301,40 @@ with tab3:
 			if m:
 				groups.append((fname, m))
 
-	if not groups:
-		st.info("No matches found.")
-	else:
-		for group_name, matches in groups:
-			st.markdown(f"<p style='font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:#b0a89e;margin-bottom:1rem'>Inspired by &nbsp;{group_name}</p>", unsafe_allow_html=True)
-			cols = st.columns(min(4, len(matches)))
-			for i, item in enumerate(matches):
-				if isinstance(item, dict):
-					img = item.get("img")
-					title = item.get("title", "")
-					price = item.get("price", "")
-					url = item.get("url", "")
-					source = item.get("source", "")
-				else:
-					img = item
-					title = os.path.basename(str(item))
-					price = ""
-					url = ""
-					source = ""
+		if not groups:
+			st.info("No matches found.")
+		else:
+			for group_name, matches in groups:
+				analysis = st.session_state.ai_analysis.get(group_name, {})
+				group_title = analysis.get("title", "")
+				display_group = f"{group_title} — {group_name}" if group_title else group_name
+				st.markdown(f"<p style='font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:#b0a89e;margin-bottom:1rem'>Inspired by &nbsp;{display_group}</p>", unsafe_allow_html=True)
+				cols = st.columns(min(4, len(matches)))
+				for i, item in enumerate(matches):
+					if isinstance(item, dict):
+						img = item.get("img")
+						title = item.get("title", "")
+						price = item.get("price", "")
+						url = item.get("url", "")
+						source = item.get("source", "")
+					else:
+						img = item
+						title = os.path.basename(str(item))
+						price = ""
+						url = ""
+						source = ""
 
-				col = cols[i % 4]
-				try:
-					col.image(img, use_column_width=True)
-				except Exception:
-					col.write("(image missing)")
+					col = cols[i % 4]
+					try:
+						col.image(img, use_column_width=True)
+					except Exception:
+						col.write("(image missing)")
 
-				if title:
-					col.markdown(f"<span style='font-size:0.8rem;font-weight:400'>{title}</span>", unsafe_allow_html=True)
-				if price or source:
-					col.caption(f"{price}  {f'· {source}' if source else ''}")
-				if url:
-					col.markdown(f"[View listing →]({url})")
-			st.divider()
+					if title:
+						col.markdown(f"<span style='font-size:0.8rem;font-weight:400'>{title}</span>", unsafe_allow_html=True)
+					if price or source:
+						col.caption(f"{price}  {f'· {source}' if source else ''}")
+					if url:
+						col.markdown(f"[View listing →]({url})")
+				st.divider()
 
