@@ -1574,6 +1574,9 @@ with tab3:
 
     # Always show all saved outfit boards, even when nothing is uploaded
     import base64 as _b64_outfit
+    _tilts      = ["tilt-l1", "tilt-r1", "tilt-l2", "tilt-r2", "tilt-l3"]
+    _sticky_cls = ["sticky-rose", "sticky-sage", "sticky-lavender"]
+    _ordinals   = ["01", "02", "03", "04"]
     _all_saved = {
         fname: data for fname, data in st.session_state.ai_analysis.items()
         if data.get("outfit_suggestions") and (not uploaded or fname != uploaded.name)
