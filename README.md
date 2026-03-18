@@ -1,6 +1,6 @@
 # Thread-Trace
 
-A Streamlit prototype that maps Pinterest mood board images onto curated second-hand marketplace listings — helping users find affordable alternatives that match their aesthetic.
+A Streamlit prototype that maps Pinterest mood board images onto curated second-hand marketplace listings, helping users find affordable alternatives that match their aesthetic.
 
 Built for *Prototyping Products with Data and Artificial Intelligence* (Assignment 1).
 
@@ -10,7 +10,7 @@ Built for *Prototyping Products with Data and Artificial Intelligence* (Assignme
 
 1. Upload a mood board or Pinterest screenshot
 2. The app simulates AI-based style analysis (feature extraction + nearest-neighbor search)
-3. Returns a ranked list of second-hand marketplace matches (Vinted, Depop, eBay, etc.)
+3. Returns a ranked list of second-hand marketplace matches from eBay and etsy
 
 ---
 
@@ -49,12 +49,4 @@ thread-trace/
 ├── PROCESS.md          # Process document (decisions, pipeline, AI usage)
 └── requirements.txt
 ```
-
----
-
-## Deliverables
-
-- **GitHub repo:** this repository
-- **Demo:** *(video or Streamlit Cloud link to be added)*
-- **Process document:** [PROCESS.md](./PROCESS.md)
 
