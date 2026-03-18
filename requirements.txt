@@ -2,3 +2,4 @@ streamlit
 pillow
 pypdf
 openai
+requests
