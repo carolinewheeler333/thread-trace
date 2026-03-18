@@ -1249,12 +1249,11 @@ with tab2:
                         "text-align:center;margin:1rem 0'>"
                         "<p style='font-family:Cormorant Garamond,serif;font-size:1.4rem;"
                         "font-weight:400;color:#1e1e1e;margin-bottom:0.5rem'>"
-                        "eBay daily limit reached.</p>"
+                        "Today's eBay search quota is used up.</p>"
                         "<p style='font-family:Jost,sans-serif;font-size:0.8rem;"
                         "letter-spacing:0.08em;color:#9e9890;line-height:1.7'>"
-                        "New eBay developer accounts have a small daily call quota. "
-                        "The limit resets every 24 hours — try again tomorrow, "
-                        "or add an Etsy API key for unlimited searches in the meantime.</p>"
+                        "Come back in 24 hours and your matches will be ready. "
+                        "Etsy support is also in the works for even more results!</p>"
                         "</div>",
                         unsafe_allow_html=True,
                     )
