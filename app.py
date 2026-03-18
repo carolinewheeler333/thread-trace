@@ -1573,6 +1573,7 @@ with tab3:
             st.info("Upload an image and wait for AI analysis to complete first.")
 
     # Always show all saved outfit boards, even when nothing is uploaded
+    import base64 as _b64_outfit
     _all_saved = {
         fname: data for fname, data in st.session_state.ai_analysis.items()
         if data.get("outfit_suggestions") and (not uploaded or fname != uploaded.name)
