@@ -1454,7 +1454,7 @@ with tab3:
                 elif not etsy_key:
                     _right_html += (
                         "<p style='font-family:Jost,sans-serif;font-size:0.75rem;color:#b0a89e;"
-                        "letter-spacing:0.06em;align-self:center'>Add an Etsy API key to see live results.</p>"
+                        "letter-spacing:0.06em;align-self:center'>Hang tight, Etsy API access is in review and eBay's daily quota resets within 24 hours. Check back soon!</p>"
                     )
                 _right_html += "  </div></div>"
 
@@ -1477,35 +1477,99 @@ with tab3:
             )
             st.markdown(_board_html, unsafe_allow_html=True)
 
-            # Saved Looks: previously generated boards
+            # Previously saved outfit boards — rendered as full boards below current
             _saved = {
                 fname: data for fname, data in st.session_state.ai_analysis.items()
                 if data.get("outfit_suggestions") and fname != uploaded.name
             }
-            if _saved:
+            for _sfname, _sdata in _saved.items():
+                _spath = os.path.join("data", "inspiration", _sfname)
+                if not os.path.exists(_spath):
+                    continue
                 st.divider()
                 st.markdown(
-                    "<p style='font-family:Jost,sans-serif;font-size:0.6rem;letter-spacing:0.3em;"
-                    "text-transform:uppercase;color:#b0a89e;margin-bottom:1rem'>Previously saved looks</p>",
+                    "<div class='sketchbook-header'>"
+                    "<span class='sketchbook-header-rule'></span>"
+                    f"<span>{_sdata.get('title', _sfname)}</span>"
+                    "<span class='sketchbook-header-rule'></span>"
+                    "</div>",
                     unsafe_allow_html=True,
                 )
-                _saved_html = "<div style='display:flex;flex-wrap:wrap;gap:14px;margin-top:0.5rem'>"
-                for _si, (_sfname, _sdata) in enumerate(_saved.items()):
-                    _stitle = _sdata.get("title", _sfname)
-                    _spath  = os.path.join("data", "inspiration", _sfname)
-                    if os.path.exists(_spath):
-                        with open(_spath, "rb") as _sf:
-                            _sb64 = _b64_outfit.b64encode(_sf.read()).decode()
-                        _sext  = _sfname.rsplit(".", 1)[-1].lower()
-                        _smime = "image/jpeg" if _sext in ("jpg", "jpeg") else f"image/{_sext}"
-                        _saved_html += (
-                            f"<div class='saved-polaroid {_tilts[_si % len(_tilts)]}' style='width:150px'>"
-                            f"<img src='data:{_smime};base64,{_sb64}' style='width:150px;height:195px;object-fit:cover;display:block' />"
-                            f"<p class='saved-polaroid-label'>{_stitle[:22]}{'…' if len(_stitle)>22 else ''}</p>"
-                            f"</div>"
+                with open(_spath, "rb") as _sf:
+                    _sb64 = _b64_outfit.b64encode(_sf.read()).decode()
+                _sext  = _sfname.rsplit(".", 1)[-1].lower()
+                _smime = "image/jpeg" if _sext in ("jpg", "jpeg") else f"image/{_sext}"
+                _s_suggestions   = _sdata.get("outfit_suggestions", [])
+                _s_outfit_matches = _sdata.get("outfit_matches", {})
+                _s_desc  = _sdata.get("description", "")
+                _s_title = _sdata.get("title", "")
+
+                _s_right = ""
+                for _sidx, _ss in enumerate(_s_suggestions):
+                    _skey   = str(_sidx)
+                    _spiece = _ss.get("piece", "")
+                    _swhy   = _ss.get("why", "")
+                    _sres   = _s_outfit_matches.get(_skey, [])
+                    _ssc    = _sticky_cls[_sidx % len(_sticky_cls)]
+                    _snum   = _ordinals[_sidx] if _sidx < len(_ordinals) else str(_sidx+1).zfill(2)
+                    _s_right += (
+                        f"<div class='ob-piece-row'>"
+                        f"  <div class='ob-piece-sticky sticky {_ssc}'>"
+                        f"    <p class='sticky-num'>{_snum}</p>"
+                        f"    <p class='sticky-title'>{_spiece}</p>"
+                        f"    <p class='sticky-body'>{_swhy}</p>"
+                        f"  </div>"
+                        f"  <div class='ob-products'>"
+                    )
+                    if _sres:
+                        for _si2, _sitem in enumerate(_sres):
+                            _simg   = _sitem.get("img", "")
+                            _stit   = _sitem.get("title", "")
+                            _sprice = _sitem.get("price", "")
+                            _surl   = _sitem.get("url", "")
+                            _sscore = _sitem.get("relevance_score", 0)
+                            _stilt  = _tilts[_si2 % len(_tilts)]
+                            _sshort = _stit[:28] + "..." if len(_stit) > 28 else _stit
+                            _s_right += (
+                                f"<a href='{_surl}' target='_blank' style='text-decoration:none;"
+                                f"display:inline-block;width:100px;vertical-align:top'>"
+                                f"  <div class='polaroid {_stilt}' style='width:100px'>"
+                                + (f"  <img src='{_simg}' style='width:100px;height:130px;object-fit:cover;display:block' />"
+                                   if _simg else
+                                   "  <div style='width:100px;height:130px;background:#edeae5'></div>")
+                                + f"  <p class='polaroid-caption' style='font-size:0.6rem'>{_sprice}</p>"
+                                f"  </div>"
+                                f"  <p style='font-family:Cormorant Garamond,serif;font-style:italic;"
+                                f"  font-size:0.68rem;color:#6b5e54;margin:3px 0 1px 0;line-height:1.3'>{_sshort}</p>"
+                                f"  <p style='font-family:Jost,sans-serif;font-size:0.48rem;"
+                                f"  letter-spacing:0.1em;text-transform:uppercase;color:#b0a89e;margin:0'>{_sscore}% match</p>"
+                                f"</a>"
+                            )
+                    else:
+                        _s_right += (
+                            "<p style='font-family:Jost,sans-serif;font-size:0.75rem;color:#b0a89e;"
+                            "letter-spacing:0.06em;align-self:center'>Hang tight, Etsy API access is in review "
+                            "and eBay's daily quota resets within 24 hours. Check back soon!</p>"
                         )
-                _saved_html += "</div>"
-                st.markdown(_saved_html, unsafe_allow_html=True)
+                    _s_right += "  </div></div>"
+
+                _s_board = (
+                    f"<div class='outfit-board'>"
+                    f"  <div class='ob-left'>"
+                    f"    <div class='polaroid polaroid-hero tilt-l1' style='width:180px'>"
+                    f"      <img src='data:{_smime};base64,{_sb64}' style='width:180px;height:240px;object-fit:cover;display:block' />"
+                    f"      <p class='polaroid-caption'>saved look</p>"
+                    f"    </div>"
+                    f"    <div class='sticky sticky-rose' style='margin-top:0.9rem'>"
+                    f"      <p class='sticky-hero-title'>{_s_title if _s_title else 'The Look'}</p>"
+                    + (f"      <p class='sticky-hero-sub'>{_s_desc}</p>" if _s_desc else "")
+                    + f"      <p class='sticky-footer'>{len(_s_suggestions)} pieces to complete this look</p>"
+                    f"    </div>"
+                    f"  </div>"
+                    f"  <div class='ob-right'>{_s_right}</div>"
+                    f"</div>"
+                )
+                st.markdown(_s_board, unsafe_allow_html=True)
 
         elif cached.get("outfit_attempted"):
             st.info("Could not generate outfit suggestions for this image. Try a clearer photo of a single garment.")
