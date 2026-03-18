@@ -1,0 +1,157 @@
+{
+  "inspo1.jpeg": {
+    "title": "Brown Wide-Leg Pants",
+    "description": "These pants feature a unique, wide-leg silhouette with a structured design, creating a bold and contemporary look. The deep brown color adds to the earthy aesthetic, making it versatile for casual or more avant-garde styling. The overall vibe is modern with a touch of utilitarian edge.",
+    "attributes": {
+      "Earth Tones": 1.0,
+      "Wide-Leg": 1.0,
+      "Structured": 0.9,
+      "Modern": 0.8
+    },
+    "search_query": "brown wide-leg pants women",
+    "search_category": "pants",
+    "_search_error": "Service call has exceeded the number of times the operation is allowed to be called",
+    "live_matches": []
+  },
+  "inspo2.jpeg": {
+    "title": "Striped Knit Dress",
+    "description": "The dress features a fitted silhouette with flared sleeves, creating an elegant yet casual vibe. Its warm color palette of reds, oranges, and browns evokes an autumnal, cozy aesthetic. The knit texture adds a tactile, handmade quality perfect for cooler seasons.",
+    "attributes": {
+      "Earth Tones": 0.9,
+      "Knitted": 1.0,
+      "Fitted Silhouette": 0.8,
+      "Bohemian": 0.7
+    },
+    "search_query": "striped knit dress fitted women earth tones",
+    "search_category": "dress",
+    "_search_error": "Service call has exceeded the number of times the operation is allowed to be called",
+    "live_matches": []
+  },
+  "inspo3.jpeg": {
+    "title": "Burgundy Speedcat Sneakers",
+    "description": "These sneakers merge a sleek, racing-inspired silhouette with a rich burgundy color palette. Crafted from a blend of leather and suede, they offer a sporty yet sophisticated vibe, ideal for casual or streetwear looks.",
+    "attributes": {
+      "Burgundy": 1.0,
+      "Suede": 0.8,
+      "Sporty": 0.9,
+      "Sleek Fit": 0.85
+    },
+    "search_query": "burgundy suede sneakers women",
+    "search_category": "sneakers",
+    "_search_error": "Service call has exceeded the number of times the operation is allowed to be called",
+    "live_matches": []
+  },
+  "inspo4.jpeg": {
+    "title": "Beige Harrington Jacket",
+    "description": "This classic beige Harrington jacket offers a minimalist aesthetic with its simple silhouette and neutral color. It's versatile and perfect for casual, everyday looks, exuding a laid-back vibe.",
+    "attributes": {
+      "Neutral Tones": 0.9,
+      "Minimalist": 0.8,
+      "Casual": 0.9,
+      "Zip Closure": 1.0
+    },
+    "search_query": "beige Harrington jacket women",
+    "search_category": "jacket",
+    "_search_error": "Service call has exceeded the number of times the operation is allowed to be called",
+    "live_matches": []
+  },
+  "Screenshot 2026-03-17 at 10.46.23\u202fPM.png": {
+    "title": "Brown Structured Bustier",
+    "description": "This bustier features a structured silhouette with a fitted bodice and pleated peplum detail. The earthy brown hue enhances its rustic yet chic aesthetic. The piece exudes a vintage-inspired, feminine vibe.",
+    "attributes": {
+      "Earth Tones": 1.0,
+      "Structured Fit": 0.9,
+      "Pleated Detail": 0.8,
+      "Vintage Style": 0.7
+    },
+    "search_query": "brown structured bustier women",
+    "search_category": "bustier",
+    "search_attempted": true,
+    "_search_error": "Service call has exceeded the number of times the operation is allowed to be called",
+    "live_matches": [],
+    "outfit_suggestions": [
+      {
+        "piece": "High-Waisted Vintage Jeans",
+        "query": "high waisted vintage jeans brown",
+        "why": "These jeans will complement the structured bustier while adding a casual yet chic vibe."
+      },
+      {
+        "piece": "Brown Leather Ankle Boots",
+        "query": "brown leather ankle boots vintage",
+        "why": "The earthy tones of the boots will tie the outfit together and enhance the rustic aesthetic."
+      },
+      {
+        "piece": "Beaded Fringe Shoulder Bag",
+        "query": "vintage beaded fringe shoulder bag",
+        "why": "This bag adds a playful yet stylish touch that will enhance the vintage-inspired theme of the outfit."
+      }
+    ],
+    "outfit_attempted": true
+  },
+  "Screenshot 2026-03-17 at 11.54.08\u202fPM.png": {
+    "title": "Burgundy Leather Fringe Top",
+    "description": "The top exhibits a sleek, modern aesthetic with a fitted silhouette and is crafted from burgundy leather. The fringe hem adds a playful, bohemian touch, blending elegance with a bit of edge.",
+    "attributes": {
+      "Leather": 1.0,
+      "Fringe": 1.0,
+      "Bohemian": 0.7,
+      "Burgundy": 1.0
+    },
+    "search_query": "burgundy leather fringe top women",
+    "search_category": "top",
+    "search_attempted": true,
+    "_search_error": "Service call has exceeded the number of times the operation is allowed to be called",
+    "live_matches": [],
+    "outfit_suggestions": [
+      {
+        "piece": "High-Waisted Black Denim Skirt",
+        "query": "vintage high waisted black denim skirt",
+        "why": "The high-waisted silhouette complements the fitted fringe top while adding a classic touch."
+      },
+      {
+        "piece": "Gold Hoop Earrings",
+        "query": "vintage gold hoop earrings",
+        "why": "Gold hoops add a subtle elegance that enhances the bohemian vibe of the leather fringe."
+      },
+      {
+        "piece": "Brown Leather Ankle Boots",
+        "query": "second hand brown leather ankle boots",
+        "why": "Brown leather ankle boots provide a grounded, stylish finish that ties in with the bohemian elements of the top."
+      }
+    ],
+    "outfit_attempted": true
+  },
+  "Screenshot 2026-03-18 at 9.25.31\u202fPM.png": {
+    "title": "Tan Suede Jacket",
+    "description": "This jacket has a sleek, structured silhouette with a luxurious suede texture. The warm tan color palette and intricate stitching add a sophisticated and earthy vibe.",
+    "attributes": {
+      "Earth Tones": 0.9,
+      "Structured Fit": 0.7,
+      "Suede": 1.0,
+      "Embroidery": 0.6
+    },
+    "search_query": "tan suede jacket women",
+    "search_category": "jacket",
+    "search_attempted": true,
+    "_search_error": "Service call has exceeded the number of times the operation is allowed to be called",
+    "live_matches": [],
+    "outfit_suggestions": [
+      {
+        "piece": "White Cotton T-Shirt",
+        "query": "second hand white cotton t-shirt",
+        "why": "A classic white tee offers a clean contrast to the warm tan suede jacket."
+      },
+      {
+        "piece": "Dark Denim Jeans",
+        "query": "vintage dark denim jeans",
+        "why": "Dark denim adds depth and a casual balance to the structured look of the suede jacket."
+      },
+      {
+        "piece": "Brown Leather Belt",
+        "query": "vintage brown leather belt",
+        "why": "A brown leather belt ties in with the earthy tones of the jacket and enhances the overall outfit."
+      }
+    ],
+    "outfit_attempted": true
+  }
+}
