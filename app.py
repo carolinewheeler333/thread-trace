@@ -980,9 +980,12 @@ def run_ai_analysis(fname, img_bytes):
     needs_ai   = not cached or cached.get("error")
     # Don't retry marketplace search if we already attempted it (avoids burning API quota
     # on every reload). Re-run only if we have no query yet or no previous attempt recorded.
+    # Also skip if a previous attempt recorded an error — the quota resets daily so the
+    # user should wait until tomorrow rather than hammering the API on every reload.
     needs_live = (
         not cached.get("search_attempted")
         and not cached.get("live_matches")
+        and not cached.get("_search_error")
         and (etsy_key or ebay_app_id)
     )
 
@@ -1263,7 +1266,8 @@ with tab2:
                 st.info("No results found for your image. Try a clearer photo of a single garment.")
 
     # Demo inspirations: curated matches
-    groups = [(fname, matcher.load_matches_for(fname)) for fname in matcher.WIZARD_MAP if matcher.load_matches_for(fname)]
+    _all_demo_matches = {fname: matcher.load_matches_for(fname) for fname in matcher.WIZARD_MAP}
+    groups = [(fname, matches) for fname, matches in _all_demo_matches.items() if matches]
 
     if groups:
         st.markdown(

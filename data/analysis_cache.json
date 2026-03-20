@@ -10,6 +10,7 @@
     },
     "search_query": "brown wide-leg pants women",
     "search_category": "pants",
+    "search_attempted": true,
     "_search_error": "Service call has exceeded the number of times the operation is allowed to be called",
     "live_matches": []
   },
@@ -24,6 +25,7 @@
     },
     "search_query": "striped knit dress fitted women earth tones",
     "search_category": "dress",
+    "search_attempted": true,
     "_search_error": "Service call has exceeded the number of times the operation is allowed to be called",
     "live_matches": []
   },
@@ -38,6 +40,7 @@
     },
     "search_query": "burgundy suede sneakers women",
     "search_category": "sneakers",
+    "search_attempted": true,
     "_search_error": "Service call has exceeded the number of times the operation is allowed to be called",
     "live_matches": []
   },
@@ -52,6 +55,7 @@
     },
     "search_query": "beige Harrington jacket women",
     "search_category": "jacket",
+    "search_attempted": true,
     "_search_error": "Service call has exceeded the number of times the operation is allowed to be called",
     "live_matches": []
   },
